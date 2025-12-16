@@ -1,17 +1,20 @@
 export const theme = {
   colors: {
-    primary: '#00C26F',
-    primaryDark: '#00AC62',
-    dark: '#3E3E3E',
-    darkLight: '#E1E1E1',
-    gray: '#e3e3e3',
+    primary: '#FF7A18',        // warm orange (logo base)
+    primaryDark: '#E85D04',    // deeper orange
+    secondary: '#FF2D8D',      // pink/magenta accent from logo
+    secondaryLight: '#FF8FBF',
 
-    text: '#494949',
-    textLight: '#7C7C7C',
-    textDark: '#1D1D1D',
+    dark: '#1F1F1F',
+    darkLight: '#2A2A2A',
+    gray: '#E6E6E6',
 
-    rose: '#ef4444',
-    roseLight: '#f87171',
+    text: '#2B2B2B',
+    textLight: '#8A8A8A',
+    textDark: '#0F0F0F',
+
+    glow: '#FFB703',           // highlight/glow tone
+    heart: '#FF6B6B',          // soft accent
   },
 
   fonts: {
@@ -29,4 +32,4 @@ export const theme = {
     xl: 18,
     xxl: 22,
   },
-}
+};
