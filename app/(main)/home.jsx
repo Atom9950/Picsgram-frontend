@@ -15,7 +15,7 @@ const Home = () => {
     const {user, setAuth} = useAuth();
     const router = useRouter();
 
-    console.log('user data: ', user);
+    // console.log('user data: ', user);
 
     // const onLogout = async() => {
     //     // setAuth(null);

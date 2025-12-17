@@ -5,13 +5,13 @@ import { supabaseUrl } from '../constants';
 
 export const getUserImageSrc = imagePath => {
   if (imagePath) {
-    return getSupabaseUrl(imagePath);
+    return getSupabaseFileUrl(imagePath);
   } else {
     return require('../assets/images/defaultUser.png')
   }
 }
 
-export const getSupabaseUrl = filePath => {
+export const getSupabaseFileUrl = filePath => {
   if(filePath){
     return {uri: `${supabaseUrl}/storage/v1/object/public/uploads/${filePath}`}
   }
