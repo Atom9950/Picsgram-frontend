@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet } from 'react-native'
 import React, { useEffect } from 'react'
 import { Stack, useRouter } from 'expo-router'
 import { AuthProvider, useAuth } from '../contexts/AuthContext'
@@ -25,7 +25,7 @@ const MainLayout = () => {
         //set auth
         setAuth(session?.user);
         updatedUserData(session?.user, session?.user.email)
-        router.replace('/home');
+        router.replace('/(main)/home'); // Changed from '/home'
       }else{
         //remove auth
         setAuth(null)
@@ -38,17 +38,13 @@ const MainLayout = () => {
     let res = await getUserData(user?.id);
     if(res.success) setUserData({...res.data, email});
   }
+  
   return (
     <Stack
-    screenOptions={{ headerShown: false }}
-    >
-      <Stack.Screen
-         name='(main)/postDetails'
-         options={{
-            presentation:'modal',
-          }}
-          />
-    </Stack>
+      screenOptions={{ 
+        headerShown: false,
+      }}
+    />
   )
 }
 

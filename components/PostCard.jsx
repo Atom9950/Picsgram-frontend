@@ -1,5 +1,5 @@
 import { Alert, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { use, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { theme } from '../constants/theme'
 import { hp, stripHtmlTags, wp } from '../helpers/common'
 import Avatar from './Avatar'
@@ -14,7 +14,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import Loading from './Loading'
 
-const textStyles ={
+const textStyles = {
     color: theme.colors.dark,
     fontSize: hp(1.75)
 }
@@ -26,7 +26,7 @@ const tagsStyles = {
   h1: {
     color: theme.colors.dark
   },
-    h4: {
+  h4: {
     color: theme.colors.dark
   }
 };
@@ -35,13 +35,23 @@ const PostCard = ({
     item,
     currentUser,
     router,
-    hasShadow= true
+    hasShadow = true,
+    showMoreIcon = true
 }) => {
 
+    // DEBUG LOGGING
+    // console.log("=== PostCard Debug ===");
+    // console.log("Item received:", item);
+    // console.log("Item ID:", item?.id);
+    // console.log("Item type:", typeof item?.id);
+    // console.log("Router exists:", !!router);
+    // console.log("showMoreIcon:", showMoreIcon);
+    // console.log("=====================");
+
     const shadowStyles = {
-        shadowOffset:{width:0,height:2},
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.06,
-        shadowRadius:6,
+        shadowRadius: 6,
         elevation: 1
     }
 
@@ -49,8 +59,8 @@ const PostCard = ({
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-      setLikes(item?.postLikes);
-    },[])
+      setLikes(item?.postLikes || []);
+    }, [])
 
     // Create video player for video posts
     const isVideo = item?.file && item.file.includes('postVideos');
@@ -62,24 +72,48 @@ const PostCard = ({
     });
 
     const openPostDetails = () => {
-      //later
-      router.push({pathname: 'postDetails', params: {postId: item?.id}})
+      if(!showMoreIcon) return null;
+      
+      console.log("=== Navigation Debug ===");
+      console.log("Attempting to navigate with ID:", item?.id);
+      console.log("ID type:", typeof item?.id);
+      console.log("Router:", router);
+      console.log("========================");
+      
+      // Make sure item.id exists
+      if(!item?.id) {
+        console.error("ERROR: No item.id found!");
+        Alert.alert("Error", "Post ID not found");
+        return;
+      }
+      
+      // Navigation
+      try {
+        router.push({
+          pathname: '/postDetails',
+          params: { postId: String(item.id) }
+        });
+        console.log("Navigation called successfully");
+      } catch (error) {
+        console.error("Navigation error:", error);
+        Alert.alert("Error", "Failed to navigate: " + error.message);
+      }
     }
 
     // Like button functionality
     const onLike = async() => {
-      if(liked){
+      if(liked) {
         // remove like
-         let updatedLikes = likes.filter(like => like.userId != currentUser?.id);
+        let updatedLikes = likes.filter(like => like.userId != currentUser?.id);
         setLikes([...updatedLikes])
         let res = await removePostLike(item?.id, currentUser?.id);
         console.log('removed like: ', res);
   
-        if(!res.success){
+        if(!res.success) {
           Alert.alert("Error", "Something went wrong!");
         }
 
-      }else{
+      } else {
         // create like
         let data = {
           userId: currentUser?.id,
@@ -89,19 +123,19 @@ const PostCard = ({
         let res = await createPostLike(data);
         console.log('added like: ', res);
   
-        if(!res.success){
+        if(!res.success) {
           Alert.alert("Error", "Something went wrong!");
         }
       }
     }
 
     const onShare = async () => {
-      if(item?.file){
+      if(item?.file) {
         // Get the file URL
         const fileUrl = getSupabaseFileUrl(item?.file);
         
         // Check if URL exists before attempting download
-        if(fileUrl?.uri){
+        if(fileUrl?.uri) {
           try {
             // Create proper file path with extension
             const fileName = item.file.split('/').pop();
@@ -149,189 +183,179 @@ const PostCard = ({
       }
     }
 
-    const createdAt = moment(item.created_at).format('MMM D')
+    const createdAt = moment(item?.created_at).format('MMM D')
+    const liked = likes.filter(like => like.userId == currentUser?.id)[0] ? true : false;
 
-    const liked = likes.filter(like => like.userId == currentUser?.id)[0]? true: false;
-    // console.log('post item: ', item)
-  return (
-    <View style={[styles.container,hasShadow && shadowStyles]}>
-      <View style={styles.header}>
-        {/* user info and post time */}
-        <View style={styles.userInfo}>
-            <Avatar
-                size={hp(4.5)}
-                uri = {item?.user.image}
-                rounded={theme.radius.md}
-            />
-            <View style={{gap: 2}}>
-                <Text style={styles.username}>{item?.user?.name}</Text>
-                <Text style={styles.postTime}>{createdAt}</Text>
-            </View>
-        </View>
+    return (
+      <View style={[styles.container, hasShadow && shadowStyles]}>
+        <View style={styles.header}>
+          {/* user info and post time */}
+          <View style={styles.userInfo}>
+              <Avatar
+                  size={hp(4.5)}
+                  uri={item?.user?.image}
+                  rounded={theme.radius.md}
+              />
+              <View style={{gap: 2}}>
+                  <Text style={styles.username}>{item?.user?.name}</Text>
+                  <Text style={styles.postTime}>{createdAt}</Text>
+              </View>
+          </View>
 
-        <TouchableOpacity onPress={openPostDetails}>
-          <Icon name='threeDotsHorizontal' size={hp(3.4)} strokeWidth={3} color={theme.colors.text} />
-        </TouchableOpacity>
-      </View>
-
-      {/* post body and media */}
-
-      <View style={styles.content}>
-        <View style={styles.postBody}>
           {
-            item.body &&
-              <RenderHtml contentWidth={wp(100)} source={{html:item?.body}}  tagsStyles={tagsStyles}/>
-          }
-        </View>
-
-        {/* post image */}
-        {
-          item?.file && item?.file?.includes('postImages') && (
-            <Image
-              source= {getSupabaseFileUrl(item?.file)}
-              transition={100}
-              style={styles.postMedia}
-              contentFit='cover'
-
-            />
-          )
-        }
-
-        {/* post video */}
-        {
-          isVideo && (
-            <VideoView
-              style={[styles.postMedia, {height: hp(30)}]}
-              player={player}
-              nativeControls
-              contentFit="cover"
-              
-            />
-          )
-        }
-      </View>
-
-      {/* like comment and share */}
-      <View style={styles.footer}>
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.footerButton} onPress={onLike}>
-            <Icon name='heart' size={24} fill={liked? theme.colors.heart: 'transparent'} strokeWidth={2} color={liked? theme.colors.heart: theme.colors.textLight} />
-            <Text style={styles.count}>
-              {
-                likes.length
-              }
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.footerButton} onPress={openPostDetails}>
-            <Icon name='comment' size={24} strokeWidth={2} color={ theme.colors.textLight} />
-            <Text style={styles.count}>
-              {
-                0
-              }
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.actions}>
-          {
-            loading? (
-              <Loading size='small'/>
-            ):(
-
-          <TouchableOpacity style={styles.footerButton} onPress={onShare}>
-            <Icon name='share' size={24} strokeWidth={2} color={ theme.colors.textLight} />
-          </TouchableOpacity>
+            showMoreIcon && (
+              <TouchableOpacity onPress={openPostDetails}>
+                <Icon name='threeDotsHorizontal' size={hp(3.4)} strokeWidth={3} color={theme.colors.text} />
+              </TouchableOpacity>
             )
           }
         </View>
 
+        {/* post body and media */}
+        <View style={styles.content}>
+          <View style={styles.postBody}>
+            {
+              item?.body &&
+                <RenderHtml contentWidth={wp(100)} source={{html: item?.body}} tagsStyles={tagsStyles}/>
+            }
+          </View>
 
+          {/* post image */}
+          {
+            item?.file && item?.file?.includes('postImages') && (
+              <Image
+                source={getSupabaseFileUrl(item?.file)}
+                transition={100}
+                style={styles.postMedia}
+                contentFit='cover'
+              />
+            )
+          }
+
+          {/* post video */}
+          {
+            isVideo && (
+              <VideoView
+                style={[styles.postMedia, {height: hp(30)}]}
+                player={player}
+                nativeControls
+                contentFit="cover"
+              />
+            )
+          }
+        </View>
+
+        {/* like comment and share */}
+        <View style={styles.footer}>
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.footerButton} onPress={onLike}>
+              <Icon name='heart' size={24} fill={liked ? theme.colors.heart : 'transparent'} strokeWidth={2} color={liked ? theme.colors.heart : theme.colors.textLight} />
+              <Text style={styles.count}>
+                {likes?.length || 0}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.footerButton} onPress={openPostDetails}>
+              <Icon name='comment' size={24} strokeWidth={2} color={theme.colors.textLight} />
+              <Text style={styles.count}>
+                {item?.comments?.[0]?.count || 0}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.actions}>
+            {
+              loading ? (
+                <Loading size='small'/>
+              ) : (
+                <TouchableOpacity style={styles.footerButton} onPress={onShare}>
+                  <Icon name='share' size={24} strokeWidth={2} color={theme.colors.textLight} />
+                </TouchableOpacity>
+              )
+            }
+          </View>
+        </View>
       </View>
-    </View>
-  )
+    )
 }
 
 export default PostCard
 
 const styles = StyleSheet.create({
     container: {
-  gap: 10,
-  marginBottom: 15,
-  borderRadius: theme.radius.xxl * 1.1,
-  borderCurve: 'continuous',
-  padding: 10,
-  paddingVertical: 12,
-  backgroundColor: 'white',
-  borderWidth: 0.5,
-  borderColor: theme.colors.gray,
-  shadowColor: '#000'
-},
+      gap: 10,
+      marginBottom: 15,
+      borderRadius: theme.radius.xxl * 1.1,
+      borderCurve: 'continuous',
+      padding: 10,
+      paddingVertical: 12,
+      backgroundColor: 'white',
+      borderWidth: 0.5,
+      borderColor: theme.colors.gray,
+      shadowColor: '#000'
+    },
 
-header: {
-  flexDirection: 'row',
-  justifyContent: 'space-between'
-},
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between'
+    },
 
-userInfo: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 8
-},
+    userInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8
+    },
 
-username: {
-  fontSize: hp(1.7),
-  color: theme.colors.textDark,
-  fontWeight: theme.fonts.medium,
-},
+    username: {
+      fontSize: hp(1.7),
+      color: theme.colors.textDark,
+      fontWeight: theme.fonts.medium,
+    },
 
-postTime: {
-  fontSize: hp(1.4),
-  color: theme.colors.textLight,
-  fontWeight: theme.fonts.medium,
-},
+    postTime: {
+      fontSize: hp(1.4),
+      color: theme.colors.textLight,
+      fontWeight: theme.fonts.medium,
+    },
 
-content: {
-  gap: 10,
-  // marginBottom: 10
-},
+    content: {
+      gap: 10,
+    },
 
-postMedia: {
-  height: hp(40),
-  width: '100%',
-  borderRadius: theme.radius.xl,
-  borderCurve: 'continuous'
-},
+    postMedia: {
+      height: hp(40),
+      width: '100%',
+      borderRadius: theme.radius.xl,
+      borderCurve: 'continuous'
+    },
 
-postBody: {
-  marginLeft: 5,
-},
+    postBody: {
+      marginLeft: 5,
+    },
 
-footer: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 15
-},
+    footer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 15
+    },
 
-footerButton: {
-  marginLeft: 5,
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 4
-},
+    footerButton: {
+      marginLeft: 5,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4
+    },
 
-actions: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 18,
-},
+    actions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 18,
+    },
 
-count: {
-  color: theme.colors.text,
-  fontSize: hp(1.8)
-}
-
-
+    count: {
+      color: theme.colors.text,
+      fontSize: hp(1.8)
+    }
 })
