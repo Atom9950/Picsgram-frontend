@@ -40,7 +40,7 @@ const RichTextEditor = ({
             ref={editorRef}
             containerStyle={styles.rich}
             editorStyle={styles.contentStyle}
-            placeholder={"What's on ypur mind?"}
+            placeholder={"What's on your mind?"}
             onChange={onChange}
         />
     </View>
