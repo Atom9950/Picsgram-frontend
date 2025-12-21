@@ -13,6 +13,7 @@ import { createPostLike, removePostLike } from '../services/postService'
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import Loading from './Loading'
+import { createNotification } from '../services/notificationService'
 
 const textStyles = {
     color: theme.colors.dark,
@@ -117,19 +118,30 @@ const PostCard = ({
         }
 
       } else {
-        // create like
-        let data = {
-          userId: currentUser?.id,
-          postId: item?.id
-        }
-        setLikes([...likes, data])
-        let res = await createPostLike(data);
-        console.log('added like: ', res);
-  
-        if(!res.success) {
-          Alert.alert("Error", "Something went wrong!");
-        }
-      }
+         // create like
+         let data = {
+           userId: currentUser?.id,
+           postId: item?.id
+         }
+         setLikes([...likes, data])
+         let res = await createPostLike(data);
+         console.log('added like: ', res);
+      
+         if(res.success) {
+           // Send notification to post owner
+           if(currentUser?.id != item?.userId) {
+             let notify = {
+               senderId: currentUser?.id,
+               receiverId: item?.userId,
+               title: 'liked your post',
+               data: JSON.stringify({postId: item?.id}),
+             }
+             createNotification(notify);
+           }
+         } else {
+           Alert.alert("Error", "Something went wrong!");
+         }
+       }
     }
 
     const onShare = async () => {
