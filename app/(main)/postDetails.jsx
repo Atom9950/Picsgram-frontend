@@ -110,15 +110,16 @@ useEffect(() => {
         //send notification to the owner of this post
 
         if(user.id != post.userId){
-          //send notification
-          let notify = {
-            senderId: user.id,
-            receiverId: post.userId,
-            title: 'commented on your post',
-            data: JSON.stringify({postId: post.id, commentId: res?.data?.id}),
-          }
-          createNotification(notify);
-        }
+           //send notification
+           let notify = {
+             senderId: user.id,
+             receiverId: post.userId,
+             title: 'commented on your post',
+             data: JSON.stringify({postId: post.id, commentId: res?.data?.id}),
+             is_read: false,
+           }
+           createNotification(notify);
+         }
 
 
         inputRef?.current?.clear();

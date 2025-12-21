@@ -14,6 +14,7 @@ import { FlatList } from 'react-native'
 import PostCard from '../../components/PostCard'
 import Loading from '../../components/Loading'
 import { getUserData } from '../../services/userService'
+import { checkUnreadNotifications, markNotificationsAsRead } from '../../services/notificationService'
 
 
 var limit = 0;
@@ -171,46 +172,55 @@ const Home = () => {
      }
 
     useEffect(() => {
-      let postChannel = supabase
-        .channel('home-posts-channel')
-        .on('postgres_changes', {event: '*', schema: 'public', table: 'posts'}, handlePostEvent)
-        .subscribe((status) => {
-          console.log('HOME - Posts channel status:', status);
-        });
+       // Check for unread notifications on app launch
+       const checkNotifications = async() => {
+         let res = await checkUnreadNotifications(user.id);
+         if(res.success && res.hasUnread) {
+           setHasUnreadNotification(true);
+         }
+       }
+       checkNotifications();
 
-      let commentChannel = supabase
-        .channel('home-comments-channel')
-        .on('postgres_changes', {event: '*', schema: 'public', table: 'comments'}, handleCommentEvent)
-        .subscribe((status) => {
-          console.log('HOME - Comments channel status:', status);
-        });
+       let postChannel = supabase
+         .channel('home-posts-channel')
+         .on('postgres_changes', {event: '*', schema: 'public', table: 'posts'}, handlePostEvent)
+         .subscribe((status) => {
+           console.log('HOME - Posts channel status:', status);
+         });
 
-      let postLikeChannel = supabase
-        .channel('home-postlikes-channel')
-        .on('postgres_changes', {event: '*', schema: 'public', table: 'postLikes'}, handlePostLikeEvent)
-        .subscribe((status) => {
-          console.log('HOME - PostLikes channel status:', status);
-        });
+       let commentChannel = supabase
+         .channel('home-comments-channel')
+         .on('postgres_changes', {event: '*', schema: 'public', table: 'comments'}, handleCommentEvent)
+         .subscribe((status) => {
+           console.log('HOME - Comments channel status:', status);
+         });
 
-        let notificationChannel = supabase
-        .channel('notifications')
-        .on('postgres_changes', {event: 'INSERT', schema: 'public', table: 'notifications'}, handleNewNotification)
-        .subscribe((status) => {
-          console.log('HOME - Notification channel status:', status);
-        });
+       let postLikeChannel = supabase
+         .channel('home-postlikes-channel')
+         .on('postgres_changes', {event: '*', schema: 'public', table: 'postLikes'}, handlePostLikeEvent)
+         .subscribe((status) => {
+           console.log('HOME - PostLikes channel status:', status);
+         });
 
-      console.log('HOME - Subscribed to real-time channels');
+         let notificationChannel = supabase
+         .channel('notifications')
+         .on('postgres_changes', {event: 'INSERT', schema: 'public', table: 'notifications'}, handleNewNotification)
+         .subscribe((status) => {
+           console.log('HOME - Notification channel status:', status);
+         });
 
-      // Initial load
-      getPosts();
+       console.log('HOME - Subscribed to real-time channels');
 
-      return() => {
-        supabase.removeChannel(postChannel);
-        supabase.removeChannel(commentChannel);
-        supabase.removeChannel(postLikeChannel);
-        supabase.removeChannel(notificationChannel);
-      }
-    }, [])
+       // Initial load
+       getPosts();
+
+       return() => {
+         supabase.removeChannel(postChannel);
+         supabase.removeChannel(commentChannel);
+         supabase.removeChannel(postLikeChannel);
+         supabase.removeChannel(notificationChannel);
+       }
+     }, [])
 
     const getPosts = async() => {
       if(!hasMore) return null;
@@ -262,9 +272,10 @@ const Home = () => {
         <View style={styles.header}>
           <Text style={styles.title}>PicsGram</Text>
           <View style={styles.icons}>
-            <Pressable onPress={() => 
+            <Pressable onPress={async() => 
               {
                 setHasUnreadNotification(false);
+                await markNotificationsAsRead(user.id);
                 router.push('notifications')
               }
             }>

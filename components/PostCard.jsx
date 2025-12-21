@@ -135,6 +135,7 @@ const PostCard = ({
                receiverId: item?.userId,
                title: 'liked your post',
                data: JSON.stringify({postId: item?.id}),
+               is_read: false,
              }
              createNotification(notify);
            }
