@@ -15,6 +15,7 @@ import * as Sharing from 'expo-sharing';
 import Loading from './Loading'
 import { createNotification } from '../services/notificationService'
 import ImageModal from './ImageModal'
+import ProfileAccessModal from './ProfileAccessModal'
 
 const textStyles = {
     color: theme.colors.dark,
@@ -282,6 +283,28 @@ const PostCard = ({
     const createdAt = moment(item?.created_at).format('MMM D')
     const liked = likes.filter(like => like.userId == currentUser?.id)[0] ? true : false;
 
+    // Handle clicking on user profile (avatar or name)
+    const handleProfilePress = () => {
+      // Don't show request if it's the current user's own post
+      if (currentUser?.id === item?.userId) {
+        // Navigate to own profile or do nothing
+        return;
+      }
+
+      // Show profile access request modal
+      ProfileAccessModal(
+        item?.user?.name,
+        currentUser?.id,
+        item?.userId,
+        () => {
+          console.log('Profile access request sent successfully');
+        },
+        (error) => {
+          console.log('Profile access request error:', error);
+        }
+      );
+    };
+
     return (
       <>
       <ImageModal 
@@ -292,7 +315,12 @@ const PostCard = ({
       <View style={[styles.container, hasShadow && shadowStyles]}>
         <View style={styles.header}>
           {/* user info and post time */}
-          <View style={styles.userInfo}>
+          <TouchableOpacity 
+            style={styles.userInfo}
+            onPress={handleProfilePress}
+            disabled={currentUser?.id === item?.userId}
+            activeOpacity={currentUser?.id === item?.userId ? 1 : 0.7}
+          >
               <Avatar
                   size={hp(4.5)}
                   uri={item?.user?.image}
@@ -302,7 +330,7 @@ const PostCard = ({
                   <Text style={styles.username}>{item?.user?.name}</Text>
                   <Text style={styles.postTime}>{createdAt}</Text>
               </View>
-          </View>
+          </TouchableOpacity>
 
           {
             showMoreIcon && (

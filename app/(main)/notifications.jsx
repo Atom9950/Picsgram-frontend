@@ -21,7 +21,11 @@ const Notifications = () => {
 
   const getNotifications = async () => {
     let res = await fetchNotifications(user.id);
-    if (res.success) setNotifications(res.data);
+    console.log('Notifications fetched:', res);
+    if (res.success) {
+      console.log('Notifications data:', res.data);
+      setNotifications(res.data);
+    }
   }
   return (
     <ScreenWrapper>
