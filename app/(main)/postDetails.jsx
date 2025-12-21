@@ -14,9 +14,10 @@ import { Alert } from 'react-native';
 import CommentItem from '../../components/CommentItem';
 import { supabase } from '../../lib/supabase';
 import { getUserData } from '../../services/userService';
+import { createNotification } from '../../services/notificationService';
 
 const PostDetails = () => {
-    const {postId} = useLocalSearchParams();
+    const {postId, commentId} = useLocalSearchParams();
     const {user} = useAuth();
     const router = useRouter();
     const inputRef = useRef(null)
@@ -107,6 +108,19 @@ useEffect(() => {
 
       if(res.success){
         //send notification to the owner of this post
+
+        if(user.id != post.userId){
+          //send notification
+          let notify = {
+            senderId: user.id,
+            receiverId: post.userId,
+            title: 'commented on your post',
+            data: JSON.stringify({postId: post.id, commentId: res?.data?.id}),
+          }
+          createNotification(notify);
+        }
+
+
         inputRef?.current?.clear();
         commentRef.current = '';
         Alert.alert("Success", "Your comment was posted successfully")
@@ -212,6 +226,7 @@ useEffect(() => {
                 <CommentItem
                   key={comment?.id?.toString()}
                   item={comment}
+                  highlight = {comment.id == commentId}
                   canDelete= {user?.id === comment?.userId || user.id === post?.userId}
                   onDelete={onDeleteComment}
                 />
@@ -235,6 +250,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'white',
     paddingVertical: wp(7),
+    marginTop: 40
   },
 
   inputContainer: {

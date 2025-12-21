@@ -25,6 +25,7 @@ const Home = () => {
     const [posts, setPosts] = useState([]);
     const [hasMore, setHasMore] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [notificationCount, setNotificationCount] = useState(0);
     
     // Store comment to post mapping for deletion events
     const commentPostMapRef = useRef({});
@@ -161,6 +162,13 @@ const Home = () => {
       }
     }
 
+    const handleNewNotification = async(payload) => {
+      console.log('HOME - New Notification received:', payload);
+      if(payload.eventType == "INSERT" && payload.new.id){
+        setNotificationCount(prev=> prev+1);
+      }
+    }
+
     useEffect(() => {
       let postChannel = supabase
         .channel('home-posts-channel')
@@ -183,6 +191,13 @@ const Home = () => {
           console.log('HOME - PostLikes channel status:', status);
         });
 
+        let notificationChannel = supabase
+        .channel('notifications')
+        .on('postgres_changes', {event: 'INSERT', schema: 'public', table: 'notifications', filter: `receiverId=eq.${user.id}`}, handleNewNotification)
+        .subscribe((status) => {
+          console.log('HOME - Posts channel status:', status);
+        });
+
       console.log('HOME - Subscribed to real-time channels');
 
       // Initial load
@@ -192,6 +207,7 @@ const Home = () => {
         supabase.removeChannel(postChannel);
         supabase.removeChannel(commentChannel);
         supabase.removeChannel(postLikeChannel);
+        supabase.removeChannel(notificationChannel);
       }
     }, [])
 
@@ -245,8 +261,20 @@ const Home = () => {
         <View style={styles.header}>
           <Text style={styles.title}>PicsGram</Text>
           <View style={styles.icons}>
-            <Pressable onPress={() => router.push('notifications')}>
+            <Pressable onPress={() => 
+              {
+                setNotificationCount(0);
+                router.push('notifications')
+              }
+            }>
               <Icon name='heart' size={hp(3.2)} strokeWidth={2} color={theme.colors.text} />
+              {
+                notificationCount > 0 && (
+                  <View style={styles.pill}>
+                    <Text style={styles.pillText}>{notificationCount}</Text>
+                  </View>
+                )
+              }
             </Pressable>
             <Pressable onPress={() => router.push('newPost')}>
               <Icon name='plus' size={hp(3.2)} strokeWidth={2} color={theme.colors.text} />
