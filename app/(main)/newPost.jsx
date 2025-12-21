@@ -44,7 +44,6 @@ const onPick = async(isImage) => {
   let mediaConfig ={
     mediaTypes: ['images'],
         allowsEditing: true,
-        aspect: [4, 3],
         quality: 0.7,
   }
   if(!isImage){

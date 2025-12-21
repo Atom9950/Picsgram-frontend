@@ -59,8 +59,8 @@ const EditProfile = () => {
   const onSubmit = async () => {
     let userData = {...user};
     let {name, phoneNumber, address, image, bio} = userData;
-    if(!name || !phoneNumber || !address || !bio || !image){
-      Alert.alert('Error', 'Please fill all fields');
+    if(!name){
+      Alert.alert('Error', 'Please fill the name field');
       return;
     }
     setLoading(true);

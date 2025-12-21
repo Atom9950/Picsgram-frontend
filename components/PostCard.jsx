@@ -14,6 +14,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import Loading from './Loading'
 import { createNotification } from '../services/notificationService'
+import ImageModal from './ImageModal'
 
 const textStyles = {
     color: theme.colors.dark,
@@ -86,6 +87,12 @@ const tagsStyles = {
   },
 };
 
+const renderersProps = {
+  img: {
+    enableExperimentalPercentWidth: true,
+  },
+};
+
 const PostCard = ({
     item,
     currentUser,
@@ -115,6 +122,7 @@ const PostCard = ({
 
     const [likes, setLikes] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
 
     useEffect(() => {
       setLikes(item?.postLikes || []);
@@ -275,6 +283,12 @@ const PostCard = ({
     const liked = likes.filter(like => like.userId == currentUser?.id)[0] ? true : false;
 
     return (
+      <>
+      <ImageModal 
+        visible={modalVisible} 
+        imageUri={getSupabaseFileUrl(item?.file)}
+        onClose={() => setModalVisible(false)}
+      />
       <View style={[styles.container, hasShadow && shadowStyles]}>
         <View style={styles.header}>
           {/* user info and post time */}
@@ -317,34 +331,32 @@ const PostCard = ({
           <View style={styles.postBody}>
            
            {
-  item?.body &&
-    <RenderHtml 
-      contentWidth={wp(100)} 
-      source={{html: item?.body}} 
-      tagsStyles={tagsStyles}
-      enableCSSInlineProcessing={true}
-      ignoredStyles={["fontSize"]}
-      renderersProps={{
-        img: {
-          enableExperimentalPercentWidth: true,
-        },
-      }}
-      defaultTextProps={{
-        allowFontScaling: false,
-      }}
-    />
-}
+           item?.body &&
+           <RenderHtml 
+           contentWidth={wp(100)} 
+           source={{html: item?.body}} 
+           tagsStyles={tagsStyles}
+           enableCSSInlineProcessing={true}
+           ignoredStyles={["fontSize"]}
+           renderersProps={renderersProps}
+           defaultTextProps={{
+           allowFontScaling: false,
+           }}
+           />
+           }
           </View>
 
           {/* post image */}
           {
             item?.file && item?.file?.includes('postImages') && (
-              <Image
-                source={getSupabaseFileUrl(item?.file)}
-                transition={100}
-                style={styles.postMedia}
-                contentFit='cover'
-              />
+              <TouchableOpacity onPress={() => setModalVisible(true)} activeOpacity={0.9}>
+                <Image
+                  source={getSupabaseFileUrl(item?.file)}
+                  transition={100}
+                  style={styles.postMedia}
+                  contentFit='cover'
+                />
+              </TouchableOpacity>
             )
           }
 
@@ -394,6 +406,7 @@ const PostCard = ({
           </View>
         </View>
       </View>
+      </>
     )
 }
 
