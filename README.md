@@ -135,18 +135,12 @@ Before you begin, ensure you have the following installed:
 ### Main Features Showcase
 
 | Home Feed | Create Post | Profile View |
-|-----------|-------------|--------------|
-| ![WhatsApp Image 2025-12-22 at 11 31 09 AM (1)](https://github.com/user-attachments/assets/5206b5da-12c0-4640-b0a8-93d8ac778bc1)
- | ![WhatsApp Image 2025-12-22 at 11 31 10 AM (1)](https://github.com/user-attachments/assets/f9c835f0-7980-4a38-aa57-e40fbf991a86)
- | ![WhatsApp Image 2025-12-22 at 11 31 10 AM (2)](https://github.com/user-attachments/assets/93fec7e0-7588-4c9e-bb58-ee5305d2cdee)
- |
+|:----------:|:-----------:|:------------:|
+| ![WhatsApp Image 2025-12-22 at 11 31 09 AM (1)](https://github.com/user-attachments/assets/5206b5da-12c0-4640-b0a8-93d8ac778bc1) | ![WhatsApp Image 2025-12-22 at 11 31 10 AM (1)](https://github.com/user-attachments/assets/f9c835f0-7980-4a38-aa57-e40fbf991a86) | ![WhatsApp Image 2025-12-22 at 11 31 10 AM (2)](https://github.com/user-attachments/assets/93fec7e0-7588-4c9e-bb58-ee5305d2cdee) |
 
 | Notifications | Comments | Profile Request |
-|---------------|----------|-----------------|
-| ![WhatsApp Image 2025-12-22 at 11 40 24 AM](https://github.com/user-attachments/assets/9d0743c3-f551-4508-aa96-105d9bbffe11)
- | ![WhatsApp Image 2025-12-22 at 11 31 11 AM](https://github.com/user-attachments/assets/5eff3160-73eb-45dd-afeb-bcfe703554f9)
-| ![WhatsApp Image 2025-12-22 at 11 39 40 AM](https://github.com/user-attachments/assets/41b57526-22e5-4ec1-b66d-efca213af952)
- |
+|:-------------:|:--------:|:---------------:|
+| ![WhatsApp Image 2025-12-22 at 11 40 24 AM](https://github.com/user-attachments/assets/9d0743c3-f551-4508-aa96-105d9bbffe11) | ![WhatsApp Image 2025-12-22 at 11 31 11 AM](https://github.com/user-attachments/assets/5eff3160-73eb-45dd-afeb-bcfe703554f9) | ![WhatsApp Image 2025-12-22 at 11 39 40 AM](https://github.com/user-attachments/assets/41b57526-22e5-4ec1-b66d-efca213af952) |
 
 ---
 
