@@ -5,13 +5,14 @@ import { theme } from '../constants/theme'
 import Avatar from './Avatar'
 import moment from 'moment'
 import { acceptAccessRequest, rejectAccessRequest } from '../services/accessRequestService'
-import { createNotification } from '../services/notificationService'
+import { createNotification, deleteNotification } from '../services/notificationService'
 import { supabase } from '../lib/supabase'
 
 const NotificationItem = ({
     item,
     router,
-    onActionComplete = () => {}
+    onActionComplete = () => {},
+    onDelete = () => {}
 }
 
 ) => {
@@ -137,6 +138,41 @@ const NotificationItem = ({
         }
     };
 
+    const handleLongPress = () => {
+        Alert.alert(
+            'Delete Notification',
+            'Are you sure you want to delete this notification?',
+            [
+                {
+                    text: 'Cancel',
+                    onPress: () => console.log('Cancel Pressed'),
+                    style: 'cancel',
+                },
+                {
+                    text: 'Delete',
+                    onPress: deleteNotificationHandler,
+                    style: 'destructive',
+                },
+            ],
+            { cancelable: false }
+        );
+    };
+
+    const deleteNotificationHandler = async () => {
+        try {
+            const result = await deleteNotification(item?.id);
+            if (result.success) {
+                Alert.alert('Success', 'Notification deleted');
+                onDelete(item?.id);
+            } else {
+                Alert.alert('Error', result.message || 'Failed to delete notification');
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Something went wrong');
+            console.log('deleteNotification error:', error);
+        }
+    };
+
     const createdAt = moment(item?.created_at).format('MMM D')
 
     const isAccessRequest = item?.type === 'profile_access_request';
@@ -147,6 +183,7 @@ const NotificationItem = ({
       <TouchableOpacity 
         style={styles.container} 
         onPress={handleClick}
+        onLongPress={handleLongPress}
         disabled={isAccessRequest}
         activeOpacity={isAccessRequest ? 1 : 0.7}
       >

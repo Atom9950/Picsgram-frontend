@@ -27,6 +27,12 @@ const Notifications = () => {
       setNotifications(res.data);
     }
   }
+
+  const handleDeleteNotification = (notificationId) => {
+    setNotifications(prevNotifications => 
+      prevNotifications.filter(notif => notif.id !== notificationId)
+    );
+  }
   return (
     <ScreenWrapper>
       <View style={styles.container}>
@@ -39,6 +45,7 @@ const Notifications = () => {
                   item={item}
                   key={item?.id}
                   router = {router}
+                  onDelete={handleDeleteNotification}
                 />
               )
               

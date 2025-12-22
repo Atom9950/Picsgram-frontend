@@ -67,21 +67,41 @@ export const checkUnreadNotifications = async (receiverId) => {
 
 export const markNotificationsAsRead = async (receiverId) => {
      try {
-        const {data, error} = await supabase
-        .from("notifications")
-        .update({is_read: true})
-        .eq('receiverId', receiverId)
-        .eq('is_read', false)
-        .select();
+         const {data, error} = await supabase
+         .from("notifications")
+         .update({is_read: true})
+         .eq('receiverId', receiverId)
+         .eq('is_read', false)
+         .select();
 
-        if(error){
-            console.log('markAsRead error: ', error);
-            return { success: false };
-        }
-        return {success: true, data};
+         if(error){
+             console.log('markAsRead error: ', error);
+             return { success: false };
+         }
+         return {success: true, data};
 
-     } catch (error) {
-         console.log('markAsRead error: ', error);
-         return { success: false };
-     }
+      } catch (error) {
+          console.log('markAsRead error: ', error);
+          return { success: false };
+      }
+}
+
+export const deleteNotification = async (notificationId) => {
+     try {
+         const {data, error} = await supabase
+         .from("notifications")
+         .delete()
+         .eq('id', notificationId)
+         .select();
+
+         if(error){
+             console.log('deleteNotification error: ', error);
+             return { success: false, message: 'Error deleting notification' };
+         }
+         return {success: true, data};
+
+      } catch (error) {
+          console.log('deleteNotification error: ', error);
+          return { success: false, message: 'Error deleting notification' };
+      }
 }
