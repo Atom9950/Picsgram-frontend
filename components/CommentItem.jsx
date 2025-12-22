@@ -5,6 +5,9 @@ import { hp } from '../helpers/common'
 import Avatar from './Avatar'
 import moment from 'moment'
 import Icon from '@/assets/icons'
+import { useRouter } from 'expo-router'
+import ProfileAccessModal from './ProfileAccessModal'
+import { useAuth } from '../contexts/AuthContext'
 
 const CommentItem = ({
     item,
@@ -12,6 +15,8 @@ const CommentItem = ({
     onDelete = ()=>{},
     highlight=false
 }) => {
+    const router = useRouter();
+    const { user } = useAuth();
 
     const createdAt = moment(item.created_at).format('MMM d');
 
@@ -32,14 +37,42 @@ const CommentItem = ({
             ]
           )
     }
+
+    const handleUserPress = () => {
+        console.log('handleUserPress called from CommentItem');
+        console.log('Current user:', user?.id);
+        console.log('Comment author:', item?.userId);
+        
+        // Don't show request if it's the current user's comment
+        if (user?.id === item?.userId) {
+            console.log('Skipping - own comment');
+            return;
+        }
+
+        console.log('Showing ProfileAccessModal from CommentItem');
+        // Show profile access request modal
+        ProfileAccessModal(
+            item?.user?.name,
+            user?.id,
+            item?.userId,
+            () => {
+                console.log('Profile access request sent successfully');
+            },
+            (error) => {
+                console.log('Profile access request error:', error);
+            }
+        );
+    }
   return (
     <View style={styles.container}>
-      <Avatar
-        uri={item?.user?.image}
-      />
+      <TouchableOpacity onPress={handleUserPress} activeOpacity={0.6}>
+        <Avatar
+          uri={item?.user?.image}
+        />
+      </TouchableOpacity>
       <View style={[styles.content, highlight && styles.highlight]}>
         <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems:'center'}}>
-            <View style={styles.nameContainer}>
+            <TouchableOpacity style={styles.nameContainer} onPress={handleUserPress} activeOpacity={0.6}>
                 <Text style={styles.text}>
                     {
                         item?.user?.name
@@ -53,7 +86,7 @@ const CommentItem = ({
                         createdAt
                     }
                 </Text>
-            </View>
+            </TouchableOpacity>
             {
                 canDelete &&(
 

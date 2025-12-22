@@ -1,5 +1,5 @@
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import { Alert, StyleSheet, Text, TouchableOpacity, View, Pressable } from 'react-native'
+import React, { useState, useEffect, useRef } from 'react'
 import { hp, wp } from '../helpers/common'
 import { theme } from '../constants/theme'
 import Avatar from './Avatar'
@@ -7,6 +7,10 @@ import moment from 'moment'
 import { acceptAccessRequest, rejectAccessRequest } from '../services/accessRequestService'
 import { createNotification, deleteNotification } from '../services/notificationService'
 import { supabase } from '../lib/supabase'
+import ProfileAccessModal from './ProfileAccessModal'
+import { Swipeable } from 'react-native-gesture-handler'
+import Icon from '@/assets/icons'
+import { useAuth } from '../contexts/AuthContext'
 
 const NotificationItem = ({
     item,
@@ -18,6 +22,8 @@ const NotificationItem = ({
 ) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [isProcessed, setIsProcessed] = useState(false);
+    const swipeableRef = useRef(null);
+    const { user: currentUser } = useAuth();
 
     // Check if request still exists in database (for access request types)
     useEffect(() => {
@@ -138,14 +144,17 @@ const NotificationItem = ({
         }
     };
 
-    const handleLongPress = () => {
+    const handleDeletePress = () => {
         Alert.alert(
             'Delete Notification',
             'Are you sure you want to delete this notification?',
             [
                 {
                     text: 'Cancel',
-                    onPress: () => console.log('Cancel Pressed'),
+                    onPress: () => {
+                        swipeableRef.current?.close();
+                        console.log('Cancel Pressed');
+                    },
                     style: 'cancel',
                 },
                 {
@@ -173,72 +182,128 @@ const NotificationItem = ({
         }
     };
 
+    const renderRightActions = () => {
+        return (
+            <TouchableOpacity
+                style={styles.deleteAction}
+                onPress={handleDeletePress}
+            >
+                <Icon name='delete' size={hp(2.5)} strokeWidth={2} color='white' />
+            </TouchableOpacity>
+        );
+    };
+
     const createdAt = moment(item?.created_at).format('MMM D')
 
     const isAccessRequest = item?.type === 'profile_access_request';
     const isAccessGranted = item?.type === 'profile_access_granted';
 
-  return (
-    <View>
-      <TouchableOpacity 
-        style={styles.container} 
-        onPress={handleClick}
-        onLongPress={handleLongPress}
-        disabled={isAccessRequest}
-        activeOpacity={isAccessRequest ? 1 : 0.7}
-      >
-        <Avatar
-            uri = {item?.sender?.image}
-            size={hp(5)}
-        />
+  const handleUserPress = () => {
+    console.log('handleUserPress called');
+    console.log('Current user:', currentUser?.id);
+    console.log('Notification sender:', item?.senderId);
+    console.log('Notification type:', item?.type);
+    
+    // For comment and like notifications, navigate to the post/comment instead
+    if (item?.type !== 'profile_access_request' && item?.type !== 'profile_access_granted') {
+      console.log('Navigating to post/comment');
+      handleClick();
+      return;
+    }
+    
+    // Don't show request if viewing own profile
+    if (currentUser?.id === item?.senderId) {
+      console.log('Skipping - own profile');
+      return;
+    }
+    
+    console.log('Showing ProfileAccessModal');
+    // Show profile access request modal
+    // currentUser.id is the one making the request
+    // item.senderId is the one whose profile we want to view
+    ProfileAccessModal(
+      item?.sender?.name,
+      currentUser?.id,
+      item?.senderId,
+      () => {
+        console.log('Profile access request sent successfully');
+      },
+      (error) => {
+        console.log('Profile access request error:', error);
+      }
+    );
+  };
 
-        <View style={styles.nameTitle}>
+  return (
+    <Swipeable
+      ref={swipeableRef}
+      renderRightActions={renderRightActions}
+      onSwipeableOpen={() => {
+        // Optional: add haptic feedback
+      }}
+    >
+      <View style={styles.container}>
+        {/* User info section - clickable to view profile */}
+        <TouchableOpacity
+          style={styles.userInfo}
+          onPress={handleUserPress}
+          activeOpacity={0.6}
+        >
+          <Avatar
+            uri={item?.sender?.image}
+            size={hp(5)}
+          />
+          <View style={styles.nameTitle}>
             <Text style={styles.text}>
-                {
-                    item.sender.name
-                }
+              {item.sender.name}
             </Text>
             <Text style={[styles.text, {color: theme.colors.textDark}]}>
-                {
-                    item.title
-                }
+              {item.title}
             </Text>
-        </View>
-
-        {/* Action buttons for access requests */}
-        {isAccessRequest ? (
-          <View style={styles.actionButtons}>
-            <TouchableOpacity 
-              style={[styles.actionBtn, styles.acceptBtn, isProcessed && styles.disabledBtn]}
-              onPress={handleAcceptRequest}
-              disabled={isProcessing || isProcessed}
-            >
-              <Text style={{ color: isProcessed ? '#999' : 'white', fontSize: 16, fontWeight: 'bold' }}>✓</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionBtn, styles.rejectBtn, isProcessed && styles.disabledBtn]}
-              onPress={handleRejectRequest}
-              disabled={isProcessing || isProcessed}
-            >
-              <Text style={{ color: isProcessed ? '#999' : 'white', fontSize: 16, fontWeight: 'bold' }}>✕</Text>
-            </TouchableOpacity>
           </View>
-        ) : isAccessGranted ? (
-          <TouchableOpacity 
-            style={styles.viewBtn}
-            onPress={handleClick}
-          >
-            <Text style={styles.viewBtnText}>View</Text>
-          </TouchableOpacity>
-        ) : (
-          <Text style={[styles.text, {color: theme.colors.textLight}]}>
-            {createdAt}
-          </Text>
-        )}
-      </TouchableOpacity>
-    </View>
-  )
-}
+        </TouchableOpacity>
+
+        {/* Right section - actions or time */}
+        <TouchableOpacity
+          onPress={handleClick}
+          disabled={isAccessRequest}
+          activeOpacity={isAccessRequest ? 1 : 0.7}
+        >
+          {/* Action buttons for access requests */}
+          {isAccessRequest ? (
+            <View style={styles.actionButtons}>
+              <TouchableOpacity 
+                style={[styles.actionBtn, styles.acceptBtn, isProcessed && styles.disabledBtn]}
+                onPress={handleAcceptRequest}
+                disabled={isProcessing || isProcessed}
+              >
+                <Text style={{ color: isProcessed ? '#999' : 'white', fontSize: 16, fontWeight: 'bold' }}>✓</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.actionBtn, styles.rejectBtn, isProcessed && styles.disabledBtn]}
+                onPress={handleRejectRequest}
+                disabled={isProcessing || isProcessed}
+              >
+                <Text style={{ color: isProcessed ? '#999' : 'white', fontSize: 16, fontWeight: 'bold' }}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ) : isAccessGranted ? (
+            <TouchableOpacity 
+              style={styles.viewBtn}
+              onPress={handleClick}
+            >
+              <Text style={styles.viewBtnText}>View</Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={[styles.text, {color: theme.colors.textLight}]}>
+              {createdAt}
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
+     </Swipeable>
+   )
+        }
 
 export default NotificationItem
 
@@ -255,6 +320,13 @@ const styles = StyleSheet.create({
   padding: 15,
   borderRadius: theme.radius.xxl,
   borderCurve: 'continuous',
+},
+
+userInfo: {
+  flex: 1,
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 8,
 },
 
 nameTitle: {
@@ -308,6 +380,15 @@ viewBtnText: {
   color: 'white',
   fontSize: hp(1.5),
   fontWeight: theme.fonts.semibold,
+},
+
+deleteAction: {
+  backgroundColor: theme.colors.heart,
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingHorizontal: 20,
+  borderRadius: theme.radius.xxl,
+  borderCurve: 'continuous',
 }
 
 })

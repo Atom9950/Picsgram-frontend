@@ -8,6 +8,7 @@ import ScreenWrapper from '../../components/ScreenWrapper'
 import { useRouter } from 'expo-router';
 import NotificationItem from '../../components/NotificationItem';
 import Header from '../../components/Header'
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 
 const Notifications = () => {
@@ -34,10 +35,11 @@ const Notifications = () => {
     );
   }
   return (
-    <ScreenWrapper>
-      <View style={styles.container}>
-        <Header title='Notifications'/>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listStyle}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ScreenWrapper>
+        <View style={styles.container}>
+          <Header title='Notifications'/>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.listStyle}>
           {
             notifications.map(item => {
               return (
@@ -57,8 +59,9 @@ const Notifications = () => {
               <Text style={styles.noData}>No notifications yet</Text>
           }
         </ScrollView>
-      </View>
-    </ScreenWrapper>
+        </View>
+      </ScreenWrapper>
+    </GestureHandlerRootView>
   )
 }
 

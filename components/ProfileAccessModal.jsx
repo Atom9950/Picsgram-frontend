@@ -38,7 +38,7 @@ const ProfileAccessModal = async (senderName, senderId, receiverId, onSuccess, o
                                 console.log('Notification creation result:', notifyResult);
                                 
                                 if (!notifyResult.success) {
-                                    console.error('Notification creation failed:', notifyResult);
+                                    console.log('Notification creation failed:', notifyResult);
                                 }
                                 
                                 if (onSuccess) {
@@ -47,14 +47,14 @@ const ProfileAccessModal = async (senderName, senderId, receiverId, onSuccess, o
 
                                 Alert.alert('Success', 'Profile access request sent!');
                             } else {
-                                console.error('Request creation failed:', result.msg);
+                                console.log('Request creation failed:', result.msg);
                                 if (onError) {
                                     onError(result.msg);
                                 }
                                 Alert.alert('Error', result.msg || 'Failed to send request');
                             }
                         } catch (error) {
-                            console.error('ProfileAccessModal catch error:', error);
+                            console.log('ProfileAccessModal catch error:', error);
                             Alert.alert('Error', error.message || 'Something went wrong');
                         }
                     } catch (error) {
