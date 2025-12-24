@@ -1,4 +1,4 @@
-# 📸 Picsgram
+# 📸 PicsGram
 
 **A privacy-focused social media platform with innovative one-time profile viewing**
 
