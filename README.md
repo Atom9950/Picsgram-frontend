@@ -18,7 +18,7 @@ Picsgram is a modern mobile social media application built with React Native and
 - **❤️ Engage with Content** - Like, comment, and share posts from other users
 - **🔔 Live Notifications** - Get instant updates when someone interacts with your posts (in-app notifications)
 - **📊 Infinite Scroll** - Smooth pagination for browsing through endless content
-- **👤 User Profiles** - Personalized profiles with post history and dynamic user information
+- **👤 User Profiles** - Personalized profiles with post history and user information
 
 ### 🔐 Privacy & Security
 
